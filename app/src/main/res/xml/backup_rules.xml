@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   백업 규칙 예시 파일. 필요에 따라 주석을 풀고 수정한다.
-   자세한 내용은 https://developer.android.com/guide/topics/data/autobackup
-   참고.
-   참고: 이 파일은 API 31 미만 기기에서는 무시된다.
-   https://developer.android.com/about/versions/12/backup-restore
+   백업 규칙(API 31 미만 기기에서 사용). API 31+는 data_extraction_rules.xml 참고.
+   https://developer.android.com/guide/topics/data/autobackup
+
+   엔진 상태 prefs는 백업에서 제외한다. yt-dlp 바이너리는 noBackupFilesDir에 있어
+   백업되지 않는데, 버전을 기록한 prefs만 복원되면 재설치 후 "이미 최신"으로 오판해
+   실제로는 번들된 구버전 바이너리가 그대로 쓰이고 업데이트가 스킵된다(SABR/403).
+   - youtubedl-android.xml : 라이브러리의 dlpVersion
+   - gettube_engine.xml    : last_ytdlp_update (업데이트 주기 판단)
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="sharedpref" path="youtubedl-android.xml"/>
+    <exclude domain="sharedpref" path="gettube_engine.xml"/>
 </full-backup-content>

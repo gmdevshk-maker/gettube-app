@@ -3,10 +3,10 @@ package com.app.gettube.model
 /** 다운로드/파일이 오디오(MP3)인지 영상(MP4/MKV)인지 구분. */
 enum class MediaType { AUDIO, VIDEO }
 
-/** 다운로드 파일 탐색기의 정렬 옵션. */
+/** 다운로드 파일 탐색기의 정렬 옵션. 선언 순서가 드롭다운 표시 순서이며, 첫 항목이 기본값이다. */
 enum class SortOrder(val labelRes: Int) {
-    NAME(com.app.gettube.R.string.sort_name),
     DATE(com.app.gettube.R.string.sort_date),
+    NAME(com.app.gettube.R.string.sort_name),
     SIZE(com.app.gettube.R.string.sort_size),
 }
 

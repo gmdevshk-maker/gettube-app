@@ -1,3 +1,6 @@
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -23,7 +26,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 코드 축소 + 리소스 축소. material-icons-extended처럼 일부만 쓰는 대형
+            // 의존성에서 미사용 코드/리소스를 제거한다. 단, youtubedl-android는 Jackson
+            // 리플렉션을 쓰고 AAR에 consumer 규칙이 없어 proguard-rules.pro의 keep이 필수다.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -74,6 +81,11 @@ val abiVersionOffsets = mapOf(
     "x86" to 3,
     "x86_64" to 4,
 )
+// APK 파일명을 "GetTube_<빌드날짜>.apk" 형태로 출력한다(예: GetTube_20260609.apk).
+// 날짜는 빌드 시점 기준이며, debug/release는 서로 다른 폴더(outputs/apk/<type>/)에 생성된다.
+val buildDateStamp: String =
+    LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
+
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
@@ -84,6 +96,8 @@ androidComponents {
             if (offset != null) {
                 output.versionCode.set(offset * 1000 + 1)
             }
+            (output as? com.android.build.api.variant.impl.VariantOutputImpl)
+                ?.outputFileName?.set("GetTube_$buildDateStamp.apk")
         }
     }
 }

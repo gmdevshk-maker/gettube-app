@@ -72,10 +72,16 @@ class DownloadManager {
                     addOption("-o", File(destDir, "%(title)s.%(ext)s").absolutePath)
                     addOption("--no-mtime")
                     addOption("--no-playlist")
-                    // YouTube SABR 스트리밍(HTTP 403) 우회: SABR 전용 스트림을 주는 기본 web
-                    // 클라이언트 대신, 아직 직접 미디어 URL을 노출하는 "tv"/"web_safari"
-                    // 클라이언트에서 포맷을 가져온다.
-                    addOption("--extractor-args", "youtube:player_client=default,tv,web_safari")
+                    // YouTube 403 우회용 클라이언트 선택. 쿠키/PO 토큰을 쓰지 않으므로,
+                    // 토큰 없이도 동작하는 클라이언트만 쓴다:
+                    //  - web_safari : GVS PO 토큰 우회(SABR 회피)
+                    //  - web_embedded, android_vr : PO 토큰 불필요
+                    // "tv"/"tv_simply"는 쿠키 없으면 전 포맷이 DRM 처리되어 403이 나므로 제외한다
+                    // (yt-dlp #12563). 기본 web 클라이언트는 SABR로 포맷이 빠질 수 있어 뒤로 둔다.
+                    addOption(
+                        "--extractor-args",
+                        "youtube:player_client=web_safari,web_embedded,android_vr,default",
+                    )
                     if (type == MediaType.AUDIO) {
                         addOption("-x")                       // 오디오만 추출
                         when (audioQuality) {
@@ -84,12 +90,19 @@ class DownloadManager {
                                 addOption("--audio-quality", "192K") // 192 kbps MP3
                             }
                             AudioQuality.ORIGINAL -> {
-                                // 원본 코덱 유지(무손실 추출, 보통 .m4a/.opus)
-                                // addOption("--audio-format", "best")
+                                // 최고 음질 MP3(VBR V0, 대략 245kbps). 호환성을 위해 코덱은 mp3로 통일.
                                 addOption("--audio-format", "mp3")
                                 addOption("--audio-quality", "0")
                             }
                         }
+                        // 제목/업로더 등 메타데이터를 ID3 태그로 기록한다.
+                        addOption("--embed-metadata")
+                        // 유튜브 썸네일을 MP3 커버 아트(ID3 APIC)로 삽입한다(번들 ffmpeg 사용).
+                        // 커버는 JPEG로 변환하고, 16:9 썸네일을 중앙 정사각으로 크롭한다
+                        // (crop=ih:ih). 썸네일/임베드 실패는 yt-dlp가 경고만 내고 다운로드는 진행된다.
+                        addOption("--embed-thumbnail")
+                        addOption("--convert-thumbnails", "jpg")
+                        addOption("--ppa", "ThumbnailsConvertor:-vf crop=ih:ih")
                     } else {
                         // 선택한 해상도 상한 이하의 최고 영상 + 최고 음성을 MKV로 무손실 병합한다.
                         // MKV는 어떤 영상/음성 코덱 조합도 수용하므로 재포장/품질 손실이 없다.
@@ -103,6 +116,12 @@ class DownloadManager {
                         }
                         addOption("-f", format)
                         addOption("--merge-output-format", "mkv")
+                        // 제목/업로더 등 메타데이터(+챕터)를 MKV에 기록한다.
+                        addOption("--embed-metadata")
+                        // 유튜브 썸네일을 MKV 커버(첨부 이미지)로 삽입한다. 영상 커버는 16:9가
+                        // 자연스러우므로 MP3와 달리 정사각 크롭은 하지 않고, 호환을 위해 JPEG로 변환한다.
+                        addOption("--embed-thumbnail")
+                        addOption("--convert-thumbnails", "jpg")
                     }
                 }
 
