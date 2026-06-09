@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   데이터 추출 규칙 예시 파일. 필요에 따라 주석을 풀고 수정한다.
-   자세한 내용은 https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   참고.
+   데이터 추출 규칙(API 31+). 클라우드 백업/기기 이전 모두에서 엔진 상태 prefs를 제외한다.
+   이유는 backup_rules.xml 주석 참고(prefs만 복원되면 구버전 바이너리로 오판).
+   https://developer.android.com/about/versions/12/backup-restore#xml-changes
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: <include> 와 <exclude> 로 백업 대상을 제어한다.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="youtubedl-android.xml"/>
+        <exclude domain="sharedpref" path="gettube_engine.xml"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="youtubedl-android.xml"/>
+        <exclude domain="sharedpref" path="gettube_engine.xml"/>
     </device-transfer>
-    -->
 </data-extraction-rules>

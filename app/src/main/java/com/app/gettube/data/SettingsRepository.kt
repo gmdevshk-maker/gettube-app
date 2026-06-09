@@ -5,6 +5,7 @@ import android.os.Environment
 import androidx.core.content.edit
 import com.app.gettube.R
 import com.app.gettube.model.AudioQuality
+import com.app.gettube.model.SortOrder
 import com.app.gettube.model.VideoQuality
 import java.io.File
 
@@ -53,11 +54,17 @@ class SettingsRepository(context: Context) {
             .getOrDefault(VideoQuality.P1080)
         set(value) = prefs.edit { putString(KEY_VIDEO_Q, value.name) }
 
+    var sortOrder: SortOrder
+        get() = runCatching { SortOrder.valueOf(prefs.getString(KEY_SORT, null) ?: "") }
+            .getOrDefault(SortOrder.DATE)
+        set(value) = prefs.edit { putString(KEY_SORT, value.name) }
+
     private companion object {
         const val KEY_AUDIO_PATH = "audio_download_path"
         const val KEY_VIDEO_PATH = "video_download_path"
         const val KEY_DARK = "dark_mode"
         const val KEY_AUDIO_Q = "audio_quality"
         const val KEY_VIDEO_Q = "video_quality"
+        const val KEY_SORT = "sort_order"
     }
 }

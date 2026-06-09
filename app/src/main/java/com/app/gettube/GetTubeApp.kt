@@ -59,10 +59,17 @@ class GetTubeApp : Application() {
     }
 
     /**
-     * yt-dlp를 최신 nightly로 강제 업데이트한다(수동 버튼/자동 공통). 결과 메시지를 반환한다.
+     * yt-dlp를 최신 nightly로 업데이트한다(수동 버튼/자동 공통). 결과 메시지를 반환한다.
      * 네트워크가 필요하며, 실패해도 예외를 던지지 않고 메시지로 알린다.
+     *
+     * [force]가 true이면 현재 설치 버전이 최신이어도 다시 받아 덮어쓴다. 라이브러리는
+     * 저장된 버전과 최신 릴리스 tag가 같으면 다운로드를 건너뛰므로(ALREADY_UP_TO_DATE),
+     * 강제 시에는 라이브러리가 참조하는 버전 키를 미리 비워 버전 불일치 상태로 만든다.
      */
-    suspend fun updateEngine(): String = withContext(Dispatchers.IO) {
+    suspend fun updateEngine(force: Boolean = false): String = withContext(Dispatchers.IO) {
+        // 강제일 때만 백업/초기화. 다운로드 실패 시 되돌리기 위해 기존 값을 보관한다.
+        val savedVersion = if (force) ytdlpPrefs().getString(KEY_DLP_VERSION, null) else null
+        if (force) ytdlpPrefs().edit { remove(KEY_DLP_VERSION) }
         try {
             val status = YoutubeDL.getInstance()
                 .updateYoutubeDL(this@GetTubeApp, YoutubeDL.UpdateChannel.NIGHTLY)
@@ -71,6 +78,11 @@ class GetTubeApp : Application() {
             Log.i(TAG, "yt-dlp update: $status, version=${_engineVersion.value}")
             "업데이트 완료: ${status?.name ?: "DONE"} (yt-dlp ${_engineVersion.value ?: "?"})"
         } catch (e: Exception) {
+            // 다운로드 실패 시: 비워둔 버전 키를 복원해 표시/게이트 상태를 유지한다.
+            if (force && savedVersion != null) {
+                ytdlpPrefs().edit { putString(KEY_DLP_VERSION, savedVersion) }
+                refreshVersion()
+            }
             Log.w(TAG, "yt-dlp update failed", e)
             "업데이트 실패: ${e.message ?: "네트워크를 확인하세요"}"
         }
@@ -85,9 +97,16 @@ class GetTubeApp : Application() {
 
     private fun prefs() = getSharedPreferences("gettube_engine", Context.MODE_PRIVATE)
 
+    /** youtubedl-android 라이브러리가 설치 버전을 저장하는 prefs(강제 재설치 시 버전 키를 비우기 위함). */
+    private fun ytdlpPrefs() = getSharedPreferences(YTDLP_PREFS_NAME, Context.MODE_PRIVATE)
+
     private companion object {
         const val TAG = "GetTube"
         const val KEY_LAST_UPDATE = "last_ytdlp_update"
         val UPDATE_INTERVAL_MS = TimeUnit.DAYS.toMillis(1)
+
+        // 라이브러리 내부 SharedPrefsHelper와 동일해야 한다(youtubedl-android 0.18.1 기준).
+        const val YTDLP_PREFS_NAME = "youtubedl-android"
+        const val KEY_DLP_VERSION = "dlpVersion"
     }
 }

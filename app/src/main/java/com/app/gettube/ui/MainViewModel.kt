@@ -1,6 +1,7 @@
 package com.app.gettube.ui
 
 import android.app.Application
+import android.media.MediaScannerConnection
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +18,7 @@ import com.app.gettube.model.MediaType
 import com.app.gettube.model.SortOrder
 import com.app.gettube.model.VideoQuality
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,7 +47,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var url by mutableStateOf("")
         private set
 
-    var sortOrder by mutableStateOf(SortOrder.NAME)
+    var sortOrder by mutableStateOf(settings.sortOrder)
         private set
 
     var files by mutableStateOf<List<DownloadFile>>(emptyList())
@@ -79,6 +81,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onSortChange(order: SortOrder) {
         sortOrder = order
+        settings.sortOrder = order
         refreshFiles()
     }
 
@@ -92,9 +95,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         url = ""
         val destPath = if (type == MediaType.AUDIO) audioDownloadPath else videoDownloadPath
         viewModelScope.launch {
-            downloadManager.download(target, type, File(destPath), audioQuality, videoQuality)
+            val ok = downloadManager.download(target, type, File(destPath), audioQuality, videoQuality)
+            // 네이티브 프로세스가 파일을 직접 써서 MediaStore에 등록되지 않는다. 스캔을 걸어야
+            // 다른 음악/영상 앱의 라이브러리(폴더 목록)에 파일이 보이고 재생도 된다.
+            if (ok) scanMedia(File(destPath).listFiles { f -> f.isFile }?.map { it.absolutePath })
             refreshFiles()
         }
+    }
+
+    /** 주어진 경로들을 MediaStore에 등록/갱신한다(외부 앱이 파일을 인식하도록). */
+    private fun scanMedia(paths: Collection<String>?) {
+        val arr = paths?.toTypedArray()?.takeIf { it.isNotEmpty() } ?: return
+        MediaScannerConnection.scanFile(getApplication(), arr, null, null)
     }
 
     fun cancelDownload(id: String) = downloadManager.cancel(id)
@@ -103,6 +115,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun deleteFile(file: DownloadFile) {
         runCatching { File(file.path).delete() }
+        // 삭제된 경로를 스캔하면 파일이 없으므로 MediaStore에서 항목이 제거된다(유령 항목 방지).
+        scanMedia(listOf(file.path))
         refreshFiles()
     }
 
@@ -116,7 +130,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val newName = if (ext.isEmpty()) clean else "$clean.$ext"
         val dest = File(src.parentFile, newName)
         if (dest.absolutePath != src.absolutePath && !dest.exists()) {
-            runCatching { src.renameTo(dest) }
+            val moved = runCatching { src.renameTo(dest) }.getOrDefault(false)
+            // 이전 경로는 제거되고 새 경로가 등록되도록 둘 다 스캔한다.
+            if (moved) scanMedia(listOf(src.absolutePath, dest.absolutePath))
         }
         refreshFiles()
     }
@@ -152,15 +168,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         settings.videoQuality = quality
     }
 
-    /** yt-dlp 엔진을 최신 nightly로 강제 업데이트하고 결과 메시지를 콜백으로 전달한다. */
+    /** yt-dlp 엔진을 최신 nightly로 강제 재설치하고(최신이어도 다시 받음) 결과 메시지를 콜백으로 전달한다. */
     fun updateEngine(onResult: (String) -> Unit) {
         viewModelScope.launch {
-            onResult(appRef.updateEngine())
+            onResult(appRef.updateEngine(force = true))
         }
     }
 
+    private var refreshJob: Job? = null
+
     fun refreshFiles() {
-        viewModelScope.launch {
+        // 연속 호출(경로/정렬 변경 등) 시 이전 스캔을 취소해 중복 I/O와 순서 꼬임을 막는다.
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
             // 디스크 I/O는 IO 디스패처에서, 상태 갱신은 메인에서 처리해 UI 끊김을 방지한다.
             val dirs = listOf(File(audioDownloadPath), File(videoDownloadPath))
             val list = withContext(Dispatchers.IO) { fileRepo.list(dirs, sortOrder) }
