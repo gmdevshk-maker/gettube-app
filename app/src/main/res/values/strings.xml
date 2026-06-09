@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">GetTube</string>
+
+    <!-- 헤더 / 입력 -->
+    <string name="url_hint">유튜브 URL을 입력하세요</string>
+    <string name="menu_settings">설정 메뉴</string>
+
+    <!-- 다운로드 버튼 -->
+    <string name="download_audio">음악 다운로드</string>
+    <string name="download_video">영상 다운로드</string>
+
+    <!-- 파일 목록 -->
+    <string name="files_header">다운로드 파일 (%1$d)</string>
+    <string name="sort_name">이름순</string>
+    <string name="sort_date">날짜순</string>
+    <string name="sort_size">크기순</string>
+    <string name="empty_files">다운로드한 파일이 없습니다</string>
+    <string name="action_rename">파일명 변경</string>
+    <string name="action_delete">삭제</string>
+    <string name="rename_title">파일명 변경</string>
+    <string name="rename_hint">새 파일명</string>
+    <string name="action_confirm">변경</string>
+    <string name="action_cancel">취소</string>
+    <string name="preparing">정보를 가져오는 중…</string>
+
+    <!-- 설정 -->
+    <string name="settings_title">설정</string>
+    <string name="settings_download_location">다운로드 위치</string>
+    <string name="settings_audio_location">음악 저장 위치</string>
+    <string name="settings_video_location">영상 저장 위치</string>
+    <string name="label_audio">음악</string>
+    <string name="label_video">영상</string>
+    <string name="settings_dark_mode">다크 모드</string>
+    <string name="settings_quality">다운로드 품질</string>
+    <string name="quality_audio_192">192kbps(기본)</string>
+    <string name="quality_audio_original">최대(고용량)</string>
+    <string name="quality_video_1080">1080p(기본)</string>
+    <string name="quality_video_720">720p(저용량)</string>
+    <string name="quality_video_original">원본크기(8K지원 고용량)</string>
+    <string name="settings_engine">다운로드 엔진(yt-dlp)</string>
+    <string name="settings_engine_update_hint">탭하여 최신으로 업데이트</string>
+    <string name="engine_updating">엔진 업데이트 중…</string>
+    <string name="dark_mode_system">시스템 설정</string>
+    <string name="dark_mode_on">켜기</string>
+    <string name="dark_mode_off">끄기</string>
+
+    <!-- 권한 / 엔진 -->
+    <string name="perm_banner">파일을 저장하려면 \'모든 파일 접근\' 권한이 필요합니다. 탭하여 허용하세요.</string>
+    <string name="engine_loading">다운로드 엔진을 준비하는 중…</string>
+    <string name="empty_url">먼저 유튜브 URL을 입력하세요</string>
+    <string name="delete_confirm_title">파일 삭제</string>
+    <string name="delete_confirm_msg">\'%1$s\' 파일을 삭제할까요?</string>
+</resources>
