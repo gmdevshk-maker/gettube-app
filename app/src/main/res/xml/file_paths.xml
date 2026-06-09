@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 공유 저장소 전체(공용 Download/GetTube 포함). -->
+    <external-path
+        name="external_storage"
+        path="." />
+    <!-- 앱 전용 외부 디렉터리. 보조 다운로드 위치로 사용. -->
+    <external-files-path
+        name="external_files"
+        path="." />
+</paths>

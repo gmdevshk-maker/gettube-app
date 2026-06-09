@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+   백업 규칙 예시 파일. 필요에 따라 주석을 풀고 수정한다.
+   자세한 내용은 https://developer.android.com/guide/topics/data/autobackup
+   참고.
+   참고: 이 파일은 API 31 미만 기기에서는 무시된다.
+   https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+    <!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>

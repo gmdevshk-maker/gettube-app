@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+   데이터 추출 규칙 예시 파일. 필요에 따라 주석을 풀고 수정한다.
+   자세한 내용은 https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   참고.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: <include> 와 <exclude> 로 백업 대상을 제어한다.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>

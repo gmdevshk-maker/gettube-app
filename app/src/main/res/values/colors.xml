@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- GetTube 앱 아이콘 배경(브랜드 레드) -->
+    <color name="icon_bg_red">#E6141A</color>
+</resources>
