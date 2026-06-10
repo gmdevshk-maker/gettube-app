@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -65,6 +66,12 @@ fun SettingsScreen(
     val engineVersion by vm.engineVersion.collectAsState()
     val context = LocalContext.current
     val updatingText = stringResource(R.string.engine_updating)
+    // 현재 설치된 앱의 versionName(build.gradle의 versionName). 조회 실패 시 빈 문자열.
+    val appVersion = remember {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull().orEmpty()
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -89,7 +96,7 @@ fun SettingsScreen(
             )
         },
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
             // 다운로드 위치 (음악/영상)
             Row(
@@ -181,6 +188,18 @@ fun SettingsScreen(
                         }
                     }
                 },
+            )
+
+            // 맨 하단에 현재 앱 버전을 표시한다.
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = stringResource(R.string.settings_app_version, appVersion),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
             )
         }
     }

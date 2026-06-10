@@ -17,6 +17,8 @@ import com.app.gettube.model.DownloadFile
 import com.app.gettube.model.MediaType
 import com.app.gettube.model.SortOrder
 import com.app.gettube.model.VideoQuality
+import com.app.gettube.update.UpdateInfo
+import com.app.gettube.update.UpdateState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +45,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** 현재 설치된 yt-dlp 버전(설정 화면 표시용). */
     val engineVersion: StateFlow<String?> = appRef.engineVersion
+
+    /** 앱(APK) 업데이트 상태. 업데이트 다이얼로그가 관찰한다. */
+    val updateState: StateFlow<UpdateState> = appRef.appUpdater.state
 
     var url by mutableStateOf("")
         private set
@@ -174,6 +179,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             onResult(appRef.updateEngine(force = true))
         }
     }
+
+    /** 사용자가 업데이트에 동의하면 APK를 받아 설치 화면을 띄운다. */
+    fun startAppUpdate(info: UpdateInfo) {
+        viewModelScope.launch { appRef.appUpdater.downloadAndInstall(info) }
+    }
+
+    /** 업데이트 안내/실패 다이얼로그를 닫는다(상태 초기화). */
+    fun dismissAppUpdate() = appRef.appUpdater.dismiss()
 
     private var refreshJob: Job? = null
 

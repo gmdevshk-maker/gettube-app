@@ -1,6 +1,3 @@
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -19,7 +16,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.00"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -81,11 +78,6 @@ val abiVersionOffsets = mapOf(
     "x86" to 3,
     "x86_64" to 4,
 )
-// APK 파일명을 "GetTube_<빌드날짜>.apk" 형태로 출력한다(예: GetTube_20260609.apk).
-// 날짜는 빌드 시점 기준이며, debug/release는 서로 다른 폴더(outputs/apk/<type>/)에 생성된다.
-val buildDateStamp: String =
-    LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
-
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
@@ -96,8 +88,12 @@ androidComponents {
             if (offset != null) {
                 output.versionCode.set(offset * 1000 + 1)
             }
+            // APK 파일명을 "GetTube_<versionName>.apk" 형태로 출력한다(예: GetTube_1.0.apk).
+            // versionName은 defaultConfig 값이며, debug/release는 서로 다른 폴더
+            // (outputs/apk/<type>/)에 생성된다.
+            val versionName = output.versionName.orNull ?: "unversioned"
             (output as? com.android.build.api.variant.impl.VariantOutputImpl)
-                ?.outputFileName?.set("GetTube_$buildDateStamp.apk")
+                ?.outputFileName?.set("GetTube_$versionName.apk")
         }
     }
 }
