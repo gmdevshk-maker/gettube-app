@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.gettube.ui.MainScreen
 import com.app.gettube.ui.MainViewModel
 import com.app.gettube.ui.SettingsScreen
+import com.app.gettube.ui.UpdateDialog
 import com.app.gettube.ui.theme.GetTubeTheme
 
 class MainActivity : ComponentActivity() {
@@ -73,4 +75,12 @@ private fun AppRoot(vm: MainViewModel) {
     } else {
         MainScreen(vm = vm, onOpenSettings = { showSettings = true })
     }
+
+    // 시작 시 확인된 앱(APK) 업데이트가 있으면 어느 화면 위에서든 안내한다.
+    val updateState by vm.updateState.collectAsState()
+    UpdateDialog(
+        state = updateState,
+        onConfirm = vm::startAppUpdate,
+        onDismiss = vm::dismissAppUpdate,
+    )
 }

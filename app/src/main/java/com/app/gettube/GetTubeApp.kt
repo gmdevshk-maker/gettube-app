@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
 import com.app.gettube.download.DownloadManager
+import com.app.gettube.update.AppUpdater
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +29,9 @@ import java.util.concurrent.TimeUnit
 class GetTubeApp : Application() {
 
     val downloadManager = DownloadManager()
+
+    /** 앱(APK) 자체 업데이트 관리자. 시작 시 버전 API를 조회한다. */
+    val appUpdater = AppUpdater(this)
 
     private val _engineReady = MutableStateFlow(false)
 
@@ -56,6 +60,8 @@ class GetTubeApp : Application() {
                 _engineReady.value = true
             }
         }
+        // 엔진 준비와 별개로, 앱(APK) 최신 버전이 있는지 병렬로 확인한다.
+        appScope.launch { appUpdater.checkForUpdate() }
     }
 
     /**

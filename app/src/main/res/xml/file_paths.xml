@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- AppUpdater가 받은 APK(cacheDir/update)를 설치 인텐트에 공유하기 위한 경로. -->
+    <cache-path
+        name="update"
+        path="update/" />
+</paths>

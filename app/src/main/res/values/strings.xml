@@ -40,6 +40,7 @@
     <string name="settings_engine">다운로드 엔진(yt-dlp)</string>
     <string name="settings_engine_update_hint">탭하여 최신으로 업데이트</string>
     <string name="engine_updating">엔진 업데이트 중…</string>
+    <string name="settings_app_version">버전 %1$s</string>
     <string name="dark_mode_system">시스템 설정</string>
     <string name="dark_mode_on">켜기</string>
     <string name="dark_mode_off">끄기</string>
@@ -50,4 +51,13 @@
     <string name="empty_url">먼저 유튜브 URL을 입력하세요</string>
     <string name="delete_confirm_title">파일 삭제</string>
     <string name="delete_confirm_msg">\'%1$s\' 파일을 삭제할까요?</string>
+
+    <!-- 앱(APK) 자동 업데이트 -->
+    <string name="update_available_title">새 버전 안내</string>
+    <string name="update_available_msg">새 버전(%1$s)이 있습니다. 지금 업데이트할까요?</string>
+    <string name="update_action_now">업데이트</string>
+    <string name="update_action_later">나중에</string>
+    <string name="update_downloading">업데이트 다운로드 중…</string>
+    <string name="update_failed_title">업데이트 실패</string>
+    <string name="update_action_close">닫기</string>
 </resources>
