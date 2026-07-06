@@ -21,6 +21,7 @@
     <string name="rename_hint">새 파일명</string>
     <string name="action_confirm">변경</string>
     <string name="action_cancel">취소</string>
+    <string name="action_retry">다시 시도</string>
     <string name="preparing">정보를 가져오는 중…</string>
 
     <!-- 설정 -->

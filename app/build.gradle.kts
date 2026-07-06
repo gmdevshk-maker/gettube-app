@@ -1,6 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// 서명 정보는 저장소에 커밋하지 않는 keystore.properties(루트)에서 읽는다.
+// 파일이 없으면(예: CI에 아직 미설정) release 서명 설정을 건너뛴다.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -15,14 +26,28 @@ android {
         applicationId = "com.app.gettube"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.01"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // keystore.properties가 있을 때만 release 서명 구성을 만든다.
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // 서명 구성이 존재할 때만 연결한다(미설정 환경에서 빌드 실패 방지).
+            signingConfig = signingConfigs.findByName("release")
             // R8 코드 축소 + 리소스 축소. material-icons-extended처럼 일부만 쓰는 대형
             // 의존성에서 미사용 코드/리소스를 제거한다. 단, youtubedl-android는 Jackson
             // 리플렉션을 쓰고 AAR에 consumer 규칙이 없어 proguard-rules.pro의 keep이 필수다.

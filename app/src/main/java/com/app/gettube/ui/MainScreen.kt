@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Warning
@@ -96,6 +98,14 @@ fun MainScreen(
     var fileToRename by remember { mutableStateOf<DownloadFile?>(null) }
     val emptyUrlMsg = stringResource(R.string.empty_url)
 
+    // 새 다운로드가 추가되면 목록을 최상단으로 스크롤해 진행 상태가 바로 보이게 한다.
+    val listState = rememberLazyListState()
+    var prevTaskCount by remember { mutableStateOf(0) }
+    LaunchedEffect(tasks.size) {
+        if (tasks.size > prevTaskCount) listState.animateScrollToItem(0)
+        prevTaskCount = tasks.size
+    }
+
     // 일회성 검증 메시지를 토스트로 표시.
     LaunchedEffect(vm.transientMessage) {
         vm.transientMessage?.let {
@@ -146,10 +156,11 @@ fun MainScreen(
             )
 
             FileList(
+                listState = listState,
                 tasks = tasks,
                 files = vm.files,
                 onCancelTask = vm::cancelDownload,
-                onDismissTask = vm::dismissTask,
+                onRetryTask = vm::retryDownload,
                 onOpenFile = { openFileInPlayer(context, it.path, it.type) },
                 onRenameFile = { fileToRename = it },
                 onDeleteFile = { fileToDelete = it },
@@ -358,10 +369,11 @@ private fun SectionHeader(
 
 @Composable
 private fun FileList(
+    listState: androidx.compose.foundation.lazy.LazyListState,
     tasks: List<DownloadTask>,
     files: List<DownloadFile>,
     onCancelTask: (String) -> Unit,
-    onDismissTask: (String) -> Unit,
+    onRetryTask: (DownloadTask) -> Unit,
     onOpenFile: (DownloadFile) -> Unit,
     onRenameFile: (DownloadFile) -> Unit,
     onDeleteFile: (DownloadFile) -> Unit,
@@ -377,9 +389,9 @@ private fun FileList(
             }
             return@Surface
         }
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
             items(tasks, key = { it.id }) { task ->
-                TaskRow(task = task, onCancel = onCancelTask, onDismiss = onDismissTask)
+                TaskRow(task = task, onCancel = onCancelTask, onRetry = onRetryTask)
                 RowDivider()
             }
             items(files, key = { it.path }) { file ->
@@ -394,7 +406,7 @@ private fun FileList(
 private fun TaskRow(
     task: DownloadTask,
     onCancel: (String) -> Unit,
-    onDismiss: (String) -> Unit,
+    onRetry: (DownloadTask) -> Unit,
 ) {
     val failed = task.state == DownloadState.FAILED
     Row(
@@ -452,14 +464,26 @@ private fun TaskRow(
             }
         }
         Spacer(Modifier.width(8.dp))
-        Icon(
-            imageVector = Icons.Filled.Close,
-            contentDescription = stringResource(R.string.action_cancel),
-            tint = if (failed) MaterialTheme.colorScheme.onSurfaceVariant else LoadingAmber,
-            modifier = Modifier
-                .size(20.dp)
-                .clickable { if (failed) onDismiss(task.id) else onCancel(task.id) },
-        )
+        if (failed) {
+            // 실패 시에는 닫기 대신 같은 URL로 다시 시도하는 새로고침 버튼을 노출한다.
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = stringResource(R.string.action_retry),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onRetry(task) },
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = stringResource(R.string.action_cancel),
+                tint = LoadingAmber,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onCancel(task.id) },
+            )
+        }
     }
 }
 

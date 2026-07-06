@@ -23,6 +23,7 @@ data class DownloadTask(
     val id: String,
     val title: String,
     val type: MediaType,
+    val url: String,                     // 재시도 시 다시 요청할 원본 URL
     val progress: Float = 0f,            // 0f..1f ; PREPARING 상태는 불확정 진행바 표시
     val state: DownloadState = DownloadState.PREPARING,
     val message: String? = null,
@@ -55,7 +56,8 @@ class DownloadManager {
     ): Boolean =
         withContext(Dispatchers.IO) {
             val id = UUID.randomUUID().toString()
-            _tasks.update { it + DownloadTask(id = id, title = "", type = type) }
+            // 새 작업을 맨 앞에 넣어 목록 최상단에 표시(새 다운로드 상태가 바로 보이도록).
+            _tasks.update { listOf(DownloadTask(id = id, title = "", type = type, url = url)) + it }
 
             try {
                 if (!destDir.exists()) destDir.mkdirs()

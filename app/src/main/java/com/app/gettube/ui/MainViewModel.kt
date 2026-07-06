@@ -12,6 +12,7 @@ import com.app.gettube.data.DarkMode
 import com.app.gettube.data.FileRepository
 import com.app.gettube.data.SettingsRepository
 import com.app.gettube.download.DownloadManager
+import com.app.gettube.download.DownloadTask
 import com.app.gettube.model.AudioQuality
 import com.app.gettube.model.DownloadFile
 import com.app.gettube.model.MediaType
@@ -98,6 +99,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         url = ""
+        launchDownload(target, type)
+    }
+
+    /** 실패한 작업을 목록에서 제거하고 같은 URL/유형으로 다시 다운로드한다. */
+    fun retryDownload(task: DownloadTask) {
+        downloadManager.dismiss(task.id)
+        launchDownload(task.url, task.type)
+    }
+
+    private fun launchDownload(target: String, type: MediaType) {
         val destPath = if (type == MediaType.AUDIO) audioDownloadPath else videoDownloadPath
         viewModelScope.launch {
             val ok = downloadManager.download(target, type, File(destPath), audioQuality, videoQuality)
