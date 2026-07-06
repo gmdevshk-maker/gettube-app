@@ -46,6 +46,13 @@
     <string name="dark_mode_on">켜기</string>
     <string name="dark_mode_off">끄기</string>
 
+    <!-- 다운로드 진행 알림(포그라운드 서비스) -->
+    <string name="notif_channel_name">다운로드 진행</string>
+    <string name="notif_channel_desc">다운로드가 진행되는 동안 상태를 표시합니다</string>
+    <string name="notif_preparing">다운로드 준비 중…</string>
+    <string name="notif_downloading_one">%1$s</string>
+    <string name="notif_downloading_many">%1$d개 다운로드 중</string>
+
     <!-- 권한 / 엔진 -->
     <string name="perm_banner">파일을 저장하려면 \'모든 파일 접근\' 권한이 필요합니다. 탭하여 허용하세요.</string>
     <string name="engine_loading">다운로드 엔진을 준비하는 중…</string>

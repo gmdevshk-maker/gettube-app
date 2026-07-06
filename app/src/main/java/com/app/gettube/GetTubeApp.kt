@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit
  */
 class GetTubeApp : Application() {
 
-    val downloadManager = DownloadManager()
+    val downloadManager = DownloadManager(this)
 
     /** 앱(APK) 자체 업데이트 관리자. 시작 시 버전 API를 조회한다. */
     val appUpdater = AppUpdater(this)

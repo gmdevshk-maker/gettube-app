@@ -5,6 +5,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- 백그라운드에서도 다운로드가 유지되도록 포그라운드 서비스로 실행한다.
+         Android 14+는 서비스 유형(dataSync) 권한을, Android 13+는 진행 알림 표시를 위해
+         POST_NOTIFICATIONS를 요구한다. WAKE_LOCK은 화면이 꺼져도 다운로드가 멈추지 않게 한다. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <!-- 앱 자체 업데이트: 받은 APK를 사용자 동의 하에 설치하기 위한 권한(Android 8+). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
@@ -53,6 +61,13 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <!-- 다운로드를 백그라운드에서도 유지하기 위한 포그라운드 서비스. 진행 알림을 표시하고
+             활성 다운로드가 없어지면 스스로 종료한다. -->
+        <service
+            android:name=".download.DownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <!-- 업데이트로 받은 APK를 설치 인텐트에 content:// URI로 넘기기 위한 FileProvider. -->
         <provider

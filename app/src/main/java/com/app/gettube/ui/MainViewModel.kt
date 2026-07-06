@@ -79,6 +79,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         refreshFiles()
+        // 다운로드가 완료되면(백그라운드에서 끝난 경우 포함) 디스크 파일 목록을 갱신한다.
+        viewModelScope.launch {
+            downloadManager.fileListChanged.collect { refreshFiles() }
+        }
     }
 
     fun onUrlChange(value: String) {
@@ -110,13 +114,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun launchDownload(target: String, type: MediaType) {
         val destPath = if (type == MediaType.AUDIO) audioDownloadPath else videoDownloadPath
-        viewModelScope.launch {
-            val ok = downloadManager.download(target, type, File(destPath), audioQuality, videoQuality)
-            // 네이티브 프로세스가 파일을 직접 써서 MediaStore에 등록되지 않는다. 스캔을 걸어야
-            // 다른 음악/영상 앱의 라이브러리(폴더 목록)에 파일이 보이고 재생도 된다.
-            if (ok) scanMedia(File(destPath).listFiles { f -> f.isFile }?.map { it.absolutePath })
-            refreshFiles()
-        }
+        // 실행은 앱 스코프의 DownloadManager가 맡는다(화면이 백그라운드로 가도 유지). 완료 후
+        // 미디어 스캔/목록 갱신은 매니저가 처리하고 fileListChanged로 통지한다.
+        downloadManager.enqueue(target, type, File(destPath), audioQuality, videoQuality)
     }
 
     /** 주어진 경로들을 MediaStore에 등록/갱신한다(외부 앱이 파일을 인식하도록). */
