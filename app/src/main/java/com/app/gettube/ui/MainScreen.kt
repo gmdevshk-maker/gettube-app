@@ -105,6 +105,11 @@ fun MainScreen(
         if (tasks.size > prevTaskCount) listState.animateScrollToItem(0)
         prevTaskCount = tasks.size
     }
+    // 다운로드 완료로 새 파일이 목록 맨 위에 추가된 뒤에도 최상단으로 스크롤한다.
+    // (완료 시 task 제거만으로는 위 효과가 트리거되지 않아 새 파일이 화면 밖으로 밀리는 문제를 보정.)
+    LaunchedEffect(Unit) {
+        vm.revealTop.collect { listState.animateScrollToItem(0) }
+    }
 
     // 일회성 검증 메시지를 토스트로 표시.
     LaunchedEffect(vm.transientMessage) {

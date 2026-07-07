@@ -22,7 +22,10 @@ import com.app.gettube.update.UpdateInfo
 import com.app.gettube.update.UpdateState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -77,11 +80,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** UI가 한 번 소비하는 일회성 사용자 메시지(예: 입력 검증). */
     var transientMessage by mutableStateOf<String?>(null)
 
+    /**
+     * 다운로드 완료로 새 파일이 목록 맨 위에 추가된 뒤, 그 파일이 보이도록 목록을 최상단으로
+     * 스크롤하라는 일회성 신호. (삭제/정렬 등 다른 새로고침에서는 방출하지 않아 스크롤이 튀지 않는다.)
+     */
+    private val _revealTop = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val revealTop: SharedFlow<Unit> = _revealTop.asSharedFlow()
+
     init {
         refreshFiles()
-        // 다운로드가 완료되면(백그라운드에서 끝난 경우 포함) 디스크 파일 목록을 갱신한다.
+        // 다운로드가 완료되면(백그라운드에서 끝난 경우 포함) 디스크 파일 목록을 갱신하고,
+        // 갱신이 끝난 뒤 최상단으로 스크롤해 방금 받은 파일이 보이게 한다.
         viewModelScope.launch {
-            downloadManager.fileListChanged.collect { refreshFiles() }
+            downloadManager.fileListChanged.collect {
+                refreshFiles()
+                refreshJob?.join()          // files 상태 갱신이 끝난 뒤에 스크롤해야 새 파일이 대상이 됨
+                _revealTop.tryEmit(Unit)
+            }
         }
     }
 
